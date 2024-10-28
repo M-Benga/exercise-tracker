@@ -6,7 +6,6 @@ const { check, validationResult } = require('express-validator');
 require('dotenv').config()
 
 
-
 app.use(cors());
 app.use(express.static('public'))
 app.use(express.urlencoded({ extended: true }));
@@ -28,7 +27,7 @@ app.post('/api/users', async (req, res) => {
     const userId = savedUser._id;
     console.log('User created successfully:', userId.toHexString());
     
-    res.json({
+    res.status(201).json({
       username: username,
       _id: userId
     });
@@ -40,7 +39,7 @@ app.post('/api/users', async (req, res) => {
 
 // Posting exercise details
 app.post('/api/users/:_id/exercises', async (req, res) => {
-  const userId = req.params._id; 
+  const userId = req.params._id;
   
   let { description, duration, date } = req.body;
 
@@ -135,11 +134,28 @@ app.get('/api/users/:_id/logs', [
     res.status(404).json({ error: 'User not found'});
   });
 
-
 })
+  
+// Change to POST method
+app.post('/api/users/delete', async (req, res) => {
+  console.log(req.body);
+  let id = req.body.userId;  // Match the name attribute from your form
+  
+  try {
+    const deletedUser = await User.findByIdAndDelete(id);
+    const name = deletedUser.username;
+    if (!deletedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    } 
 
+    res.json({ msg: `The user ${name} has been removed successfully` });
+  } catch (err) {
+    console.error('Error deleting user:', err);
+    res.status(500).json({ error: 'That did not work, please try again' });
+  }
+});
 
-
+ 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
 });
